@@ -1,4 +1,7 @@
 <?php
+use FriendsOfRedaxo\eRecht24\eRecht24Client;
+
+
 $addon = rex_addon::get('erecht24');
 $id = rex_request('id', 'int');
 
@@ -50,7 +53,7 @@ if (rex_request_method() === 'post' && rex_csrf_token::factory('erecht24_test')-
         // Test push notification
         $apiHandler = new eRecht24\RechtstexteSDK\ApiHandler(
             $clientData['api_key'],
-            rex_erecht24_client::PLUGIN_KEY
+            eRecht24Client::PLUGIN_KEY
         );
         
         rex_logger::factory()->info('Sending test push...');
