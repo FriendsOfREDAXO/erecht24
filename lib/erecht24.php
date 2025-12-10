@@ -33,6 +33,11 @@ class eRecht24
                throw new rex_exception('Invalid text type: ' . $type);
            }
 
+           // Validate language parameter to prevent SQL injection
+           if ($lang && !in_array($lang, ['de', 'en'])) {
+               throw new rex_exception('Invalid language: ' . $lang);
+           }
+
            // Get domain
            $domain = self::getDomain($identifier);
            
@@ -46,11 +51,12 @@ class eRecht24
            
            if ($lang) {
                // Wenn eine Sprache angegeben ist, prüfe ob der Text in dieser Sprache nicht leer ist
+               $columnName = 'html_' . $lang; // Safe after validation
                $sql->setQuery(
-                   'SELECT html_'.$lang.' FROM '.rex::getTable('erecht24_texts').' 
+                   'SELECT ' . $columnName . ' FROM '.rex::getTable('erecht24_texts').' 
                     WHERE domain = :domain AND type = :type 
-                    AND html_'.$lang.' IS NOT NULL 
-                    AND html_'.$lang.' != ""',
+                    AND ' . $columnName . ' IS NOT NULL 
+                    AND ' . $columnName . ' != ""',
                    $where
                );
            } else {
@@ -86,6 +92,11 @@ class eRecht24
                throw new rex_exception('Invalid text type: ' . $type);
            }
 
+           // Validate language parameter to prevent SQL injection
+           if (!in_array($lang, ['de', 'en'])) {
+               throw new rex_exception('Invalid language: ' . $lang);
+           }
+
            // Get domain
            $domain = self::getDomain($identifier);
            
@@ -94,12 +105,13 @@ class eRecht24
            }
 
            // Get text
+           $columnName = 'html_' . $lang; // Safe after validation
            $html = rex_sql::factory()
                ->setQuery(
-                   'SELECT html_'.$lang.' FROM '.rex::getTable('erecht24_texts').' WHERE domain = :domain AND type = :type',
+                   'SELECT ' . $columnName . ' FROM '.rex::getTable('erecht24_texts').' WHERE domain = :domain AND type = :type',
                    ['domain' => $domain, 'type' => $type]
                )
-               ->getValue('html_'.$lang);
+               ->getValue($columnName);
 
            return $html ?: null;
 

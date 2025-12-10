@@ -30,11 +30,16 @@ if ('1' == rex_post('formsubmit', 'string') && !$csrfToken->isValid()) {
 
 // Handle delete
 if (rex_get('func', 'string') === 'delete' && ($domain = rex_get('domain', 'string'))) {
-    try {
-        eRecht24Client::unregister($domain);
-        echo rex_view::success($addon->i18n('domain_deleted'));
-    } catch (Throwable $e) {
-        echo rex_view::error($e->getMessage());
+    // CSRF protection for delete action
+    if (!$csrfToken->isValid()) {
+        echo rex_view::error(rex_i18n::msg('csrf_token_invalid'));
+    } else {
+        try {
+            eRecht24Client::unregister($domain);
+            echo rex_view::success($addon->i18n('domain_deleted'));
+        } catch (Throwable $e) {
+            echo rex_view::error($e->getMessage());
+        }
     }
 }
 
@@ -113,7 +118,7 @@ if (count($list) === 0) {
         $listContent .= '<i class="rex-icon fa-eye"></i> ' . $addon->i18n('preview') . '</a>';
         $listContent .= '<br><a href="' . rex_url::backendPage('erecht24/test', ['id' => $item['id']]) . '" class="rex-link-expanded">';
         $listContent .= '<i class="rex-icon fa-refresh"></i> ' . $addon->i18n('test') . '</a>';
-        $listContent .= '<br><a href="' . rex_url::currentBackendPage(['func' => 'delete', 'domain' => $item['domain']]) . '" class="rex-link-expanded" data-confirm="' . $addon->i18n('delete_confirm') . '">';
+        $listContent .= '<br><a href="' . rex_url::currentBackendPage(['func' => 'delete', 'domain' => $item['domain'], '_csrf_token' => $csrfToken->getValue()]) . '" class="rex-link-expanded" data-confirm="' . $addon->i18n('delete_confirm') . '">';
         $listContent .= '<i class="rex-icon fa-trash"></i> ' . rex_i18n::msg('delete') . '</a>';
         $listContent .= '</td></tr>';
     }
