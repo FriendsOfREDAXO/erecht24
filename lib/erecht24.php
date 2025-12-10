@@ -93,8 +93,13 @@ class eRecht24
            }
 
            // Validate language parameter to prevent SQL injection
-           if (!in_array($lang, ['de', 'en'])) {
+           if ($lang && !in_array($lang, ['de', 'en'])) {
                throw new rex_exception('Invalid language: ' . $lang);
+           }
+
+           // Default to 'de' if lang is empty
+           if (!$lang) {
+               $lang = 'de';
            }
 
            // Get domain
