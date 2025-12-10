@@ -21,10 +21,12 @@ class eRecht24
    /**
     * Validates language parameter
     *
-    * @param string $lang Language code
-    * @param bool $allowEmpty Whether empty values are allowed
-    * @return string Validated language code
-    * @throws rex_exception If language is invalid
+    * @param string $lang Language code to validate
+    * @param bool $allowEmpty Whether empty values are allowed. 
+    *                         If true, empty string returns empty string.
+    *                         If false, empty string returns 'de' (default language).
+    * @return string Validated language code ('de' or 'en', or '' if empty and allowed)
+    * @throws rex_exception If language is invalid (not 'de' or 'en')
     */
    private static function validateLanguage(string $lang, bool $allowEmpty = false): string
    {
@@ -38,7 +40,7 @@ class eRecht24
 
        // Validate language parameter to prevent SQL injection
        if (!in_array($lang, ['de', 'en'], true)) {
-           throw new rex_exception('Invalid language: ' . $lang);
+           throw new rex_exception('Invalid language parameter');
        }
 
        return $lang;
