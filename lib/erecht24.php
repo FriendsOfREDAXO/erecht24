@@ -19,6 +19,32 @@ class eRecht24
    ];
 
    /**
+    * Validates language parameter
+    *
+    * @param string $lang Language code
+    * @param bool $allowEmpty Whether empty values are allowed
+    * @return string Validated language code
+    * @throws rex_exception If language is invalid
+    */
+   private static function validateLanguage(string $lang, bool $allowEmpty = false): string
+   {
+       // Handle empty values
+       if (!$lang) {
+           if ($allowEmpty) {
+               return '';
+           }
+           return 'de'; // Default to German
+       }
+
+       // Validate language parameter to prevent SQL injection
+       if (!in_array($lang, ['de', 'en'])) {
+           throw new rex_exception('Invalid language: ' . $lang);
+       }
+
+       return $lang;
+   }
+
+   /**
     * Prüft ob für die angegebene ID/Domain und den Typ ein Text existiert
     *
     * @param int|string $identifier ID oder Domain des Eintrags
@@ -33,10 +59,8 @@ class eRecht24
                throw new rex_exception('Invalid text type: ' . $type);
            }
 
-           // Validate language parameter to prevent SQL injection
-           if ($lang && !in_array($lang, ['de', 'en'])) {
-               throw new rex_exception('Invalid language: ' . $lang);
-           }
+           // Validate language parameter
+           $lang = self::validateLanguage($lang, true);
 
            // Get domain
            $domain = self::getDomain($identifier);
@@ -92,15 +116,8 @@ class eRecht24
                throw new rex_exception('Invalid text type: ' . $type);
            }
 
-           // Validate language parameter to prevent SQL injection
-           if ($lang && !in_array($lang, ['de', 'en'])) {
-               throw new rex_exception('Invalid language: ' . $lang);
-           }
-
-           // Default to 'de' if lang is empty
-           if (!$lang) {
-               $lang = 'de';
-           }
+           // Validate language parameter (defaults to 'de' if empty)
+           $lang = self::validateLanguage($lang, false);
 
            // Get domain
            $domain = self::getDomain($identifier);
