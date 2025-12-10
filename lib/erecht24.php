@@ -29,7 +29,7 @@ class eRecht24
    private static function validateLanguage(string $lang, bool $allowEmpty = false): string
    {
        // Handle empty values
-       if (!$lang) {
+       if ($lang === '') {
            if ($allowEmpty) {
                return '';
            }
@@ -37,7 +37,7 @@ class eRecht24
        }
 
        // Validate language parameter to prevent SQL injection
-       if (!in_array($lang, ['de', 'en'])) {
+       if (!in_array($lang, ['de', 'en'], true)) {
            throw new rex_exception('Invalid language: ' . $lang);
        }
 
