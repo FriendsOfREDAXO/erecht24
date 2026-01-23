@@ -7,7 +7,6 @@ namespace FriendsOfRedaxo\eRecht24;
 use rex;
 use rex_extension;
 use rex_extension_point;
-use rex_logger;
 use rex_request;
 
 use function in_array;
@@ -35,19 +34,8 @@ class OutputFilter
     {
         $content = $ep->getSubject();
 
-        // Debug-Logging
-        if (rex::isDebugMode()) {
-            rex_logger::factory()->debug('eRecht24 Outputfilter aufgerufen');
-            if (str_contains($content, '##ER-')) {
-                rex_logger::factory()->debug('eRecht24 Platzhalter gefunden im Content');
-            }
-        }
-
-        // Nicht im Edit-Modus des Structure Content Plugins filtern
-        if (self::isStructureEditMode()) {
-            if (rex::isDebugMode()) {
-                rex_logger::factory()->debug('eRecht24 Outputfilter: Structure Edit-Modus erkannt, überspringe Filter');
-            }
+        // Im Backend nur im Content-Vorschaumodus filtern, sonst nirgendwo
+        if (rex::isBackend() && !self::isContentPreviewMode()) {
             return $content;
         }
 
@@ -56,13 +44,7 @@ class OutputFilter
         // Beispiele: ##ER-PRIVACY:example.com:de##, ##ER-IMPRINT:example.com:en##
         $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([^:]+):([a-z]{2})##/i';
 
-        $result = preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
-
-        if (rex::isDebugMode() && $result !== $content) {
-            rex_logger::factory()->debug('eRecht24 Outputfilter: Platzhalter ersetzt');
-        }
-
-        return $result;
+        return preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
     }
 
     /**
@@ -73,40 +55,26 @@ class OutputFilter
     private static function replacePlaceholder(array $matches): string
     {
         $typeShort = strtoupper($matches[1]);
-        $identifier = $matches[2];
+        $domain = $matches[2];
         $lang = strtolower($matches[3]);
-
-        if (rex::isDebugMode()) {
-            rex_logger::factory()->debug('eRecht24 Platzhalter gefunden: ' . $matches[0]);
-            rex_logger::factory()->debug('Type: ' . $typeShort . ', Identifier: ' . $identifier . ', Lang: ' . $lang);
-        }
 
         // Konvertiere Kurzform zu vollständigem Typ
         $type = self::convertType($typeShort);
 
         if (null === $type) {
             // Ungültiger Typ - gib Platzhalter unverändert zurück
-            if (rex::isDebugMode()) {
-                rex_logger::factory()->debug('eRecht24: Ungültiger Typ: ' . $typeShort);
-            }
             return $matches[0];
         }
 
         // Hole den Text aus der Datenbank
-        $text = eRecht24::getText($identifier, $type, $lang);
+        $text = eRecht24::getText($domain, $type, $lang);
 
-        // Wenn kein Text gefunden wurde, gib einen Kommentar zurück (für Entwicklung)
-        // oder leeren String (für Produktion)
+        // Wenn kein Text gefunden wurde, gib einen Kommentar zurück (im Debug-Modus)
         if (null === $text || '' === $text) {
             if (rex::isDebugMode()) {
-                rex_logger::factory()->debug('eRecht24: Kein Text gefunden für ' . $identifier . ' / ' . $type . ' / ' . $lang);
                 return '<!-- eRecht24: Kein Text gefunden für ' . htmlspecialchars($matches[0]) . ' -->';
             }
             return '';
-        }
-
-        if (rex::isDebugMode()) {
-            rex_logger::factory()->debug('eRecht24: Text erfolgreich ersetzt für ' . $matches[0]);
         }
 
         return $text;
@@ -127,30 +95,19 @@ class OutputFilter
     }
 
     /**
-     * Prüft ob wir uns im Edit-Modus des Structure Content Plugins befinden.
+     * Prüft ob wir uns im Content-Vorschaumodus befinden.
+     * Nur in diesem Modus soll der Filter im Backend aktiv sein.
      */
-    private static function isStructureEditMode(): bool
+    private static function isContentPreviewMode(): bool
     {
-        // Im Frontend sind wir nie im Edit-Modus
-        if (!rex::isBackend()) {
-            return false;
-        }
-
-        // Prüfe ob wir in der Structure-Sektion sind
         $page = rex_request::get('page', 'string', '');
         $function = rex_request::get('function', 'string', '');
 
-        // Edit-Modus wenn:
-        // - Wir auf der content Seite sind
-        // - UND eine edit/add Funktion aufgerufen wird
-        // - ODER ein article_id Parameter vorhanden ist (Edit-Modus)
-        if ('content' === $page || 'content/edit' === $page) {
-            if (in_array($function, ['edit', 'add'], true)) {
-                return true;
-            }
-            if (rex_request::get('article_id', 'int', 0) > 0) {
-                return true;
-            }
+        // Vorschaumodus wenn:
+        // - Wir auf der content/edit Seite sind
+        // - UND KEINE edit/add Funktion aufgerufen wird
+        if ('content/edit' === $page) {
+            return !in_array($function, ['edit', 'add'], true);
         }
 
         return false;

@@ -157,10 +157,9 @@ $helpContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
 // Zeige verfügbare Platzhalter basierend auf vorhandenen Daten
 try {
     $sql = rex_sql::factory();
-    $sql->setQuery('SELECT e.id, e.domain, t.type, t.html_de, t.html_en 
-        FROM ' . rex::getTable('erecht24') . ' e
-        LEFT JOIN ' . rex::getTable('erecht24_texts') . ' t ON e.domain = t.domain
-        WHERE t.type IS NOT NULL');
+    $sql->setQuery('SELECT t.domain, t.type, t.html_de, t.html_en 
+        FROM ' . rex::getTable('erecht24_texts') . ' t
+        ORDER BY t.domain, t.type');
     
     $availableTexts = $sql->getArray();
 

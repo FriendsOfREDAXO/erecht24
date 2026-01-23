@@ -119,7 +119,7 @@ Das Addon bietet einen automatischen Outputfilter, der Platzhalter im Frontend u
 ### Platzhalter-Syntax
 
 ```
-##ER-{TYPE}:{IDENTIFIER}:{LANG}##
+##ER-{TYPE}:{DOMAIN}:{LANG}##
 ```
 
 **Parameter:**
@@ -127,16 +127,16 @@ Das Addon bietet einen automatischen Outputfilter, der Platzhalter im Frontend u
   - `PRIVACY` - Datenschutzerklärung
   - `IMPRINT` - Impressum
   - `PRIVACY-SOCIAL` - Datenschutzerklärung Social Media
-- `IDENTIFIER`: Domain (String) oder ID (Zahl) des Eintrags
+- `DOMAIN`: Die registrierte Domain (z.B. `example.com`)
 - `LANG`: Sprache (`de` oder `en`)
 
 ### Beispiele
 
 ```html
-<!-- Datenschutzerklärung mit ID -->
-##ER-PRIVACY:1:de##
+<!-- Datenschutzerklärung -->
+##ER-PRIVACY:example.com:de##
 
-<!-- Impressum mit Domain -->
+<!-- Impressum -->
 ##ER-IMPRINT:example.com:de##
 
 <!-- Datenschutz Social Media auf Englisch -->
@@ -145,13 +145,17 @@ Das Addon bietet einen automatischen Outputfilter, der Platzhalter im Frontend u
 <!-- In Modulen oder Templates -->
 <div class="legal-text">
     <h2>Datenschutzerklärung</h2>
-    ##ER-PRIVACY:1:de##
+    ##ER-PRIVACY:example.com:de##
 </div>
 
 <footer>
     ##ER-IMPRINT:example.com:de##
 </footer>
 ```
+
+### Verfügbare Platzhalter anzeigen
+
+Unter **eRecht24 > Einstellungen** werden automatisch alle verfügbaren Platzhalter für deine registrierten Domains angezeigt. Diese kannst du direkt kopieren und verwenden.
 
 ### Verhalten
 
