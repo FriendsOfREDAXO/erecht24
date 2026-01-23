@@ -34,8 +34,19 @@ class OutputFilter
     {
         $content = $ep->getSubject();
 
+        // Debug-Logging
+        if (rex::isDebugMode()) {
+            rex_logger::factory()->debug('eRecht24 Outputfilter aufgerufen');
+            if (str_contains($content, '##ER-')) {
+                rex_logger::factory()->debug('eRecht24 Platzhalter gefunden im Content');
+            }
+        }
+
         // Nicht im Edit-Modus des Structure Content Plugins filtern
         if (self::isStructureEditMode()) {
+            if (rex::isDebugMode()) {
+                rex_logger::factory()->debug('eRecht24 Outputfilter: Structure Edit-Modus erkannt, überspringe Filter');
+            }
             return $content;
         }
 
@@ -44,7 +55,13 @@ class OutputFilter
         // Beispiele: ##ER-PRIVACY:1:de##, ##ER-IMPRINT:example.com:en##
         $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([^:]+):([a-z]{2})##/i';
 
-        return preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
+        $result = preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
+
+        if (rex::isDebugMode() && $result !== $content) {
+            rex_logger::factory()->debug('eRecht24 Outputfilter: Platzhalter ersetzt');
+        }
+
+        return $result;
     }
 
     /**
@@ -58,11 +75,19 @@ class OutputFilter
         $identifier = $matches[2];
         $lang = strtolower($matches[3]);
 
+        if (rex::isDebugMode()) {
+            rex_logger::factory()->debug('eRecht24 Platzhalter gefunden: ' . $matches[0]);
+            rex_logger::factory()->debug('Type: ' . $typeShort . ', Identifier: ' . $identifier . ', Lang: ' . $lang);
+        }
+
         // Konvertiere Kurzform zu vollständigem Typ
         $type = self::convertType($typeShort);
 
         if (null === $type) {
             // Ungültiger Typ - gib Platzhalter unverändert zurück
+            if (rex::isDebugMode()) {
+                rex_logger::factory()->debug('eRecht24: Ungültiger Typ: ' . $typeShort);
+            }
             return $matches[0];
         }
 
@@ -73,9 +98,14 @@ class OutputFilter
         // oder leeren String (für Produktion)
         if (null === $text || '' === $text) {
             if (rex::isDebugMode()) {
+                rex_logger::factory()->debug('eRecht24: Kein Text gefunden für ' . $identifier . ' / ' . $type . ' / ' . $lang);
                 return '<!-- eRecht24: Kein Text gefunden für ' . htmlspecialchars($matches[0]) . ' -->';
             }
             return '';
+        }
+
+        if (rex::isDebugMode()) {
+            rex_logger::factory()->debug('eRecht24: Text erfolgreich ersetzt für ' . $matches[0]);
         }
 
         return $text;
