@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FriendsOfRedaxo\eRecht24;
 
 use rex;
+use rex_config;
 use rex_extension;
 use rex_extension_point;
 use rex_request;
@@ -33,6 +34,11 @@ class OutputFilter
     public static function filter(rex_extension_point $ep): string
     {
         $content = $ep->getSubject();
+
+        // Pr\u00fcfe ob der Outputfilter aktiviert ist
+        if (!rex_config::get('erecht24', 'outputfilter_enabled', true)) {
+            return $content;
+        }
 
         // Im Backend nur im Content-Vorschaumodus filtern, sonst nirgendwo
         if (rex::isBackend() && !self::isContentPreviewMode()) {

@@ -10,6 +10,15 @@ $buttons = '';
 // csrf-Schutz
 $csrfToken = rex_csrf_token::factory('erecht24');
 
+// Formular abgesendet - Outputfilter-Einstellungen
+if ('2' == rex_post('formsubmit', 'string') && !$csrfToken->isValid()) {
+    echo rex_view::error(rex_i18n::msg('csrf_token_invalid'));
+} elseif ('2' == rex_post('formsubmit', 'string')) {
+    $outputfilterEnabled = rex_post('outputfilter_enabled', 'boolean');
+    rex_config::set('erecht24', 'outputfilter_enabled', $outputfilterEnabled);
+    echo rex_view::success($addon->i18n('config_saved'));
+}
+
 // Formular abgesendet - Domain hinzufügen
 if ('1' == rex_post('formsubmit', 'string') && !$csrfToken->isValid()) {
     echo rex_view::error(rex_i18n::msg('csrf_token_invalid'));
@@ -149,6 +158,47 @@ $listOutput = $fragment->parse('core/page/section.php');
 echo $formOutput;
 echo $listOutput;
 
+// Outputfilter Konfiguration
+$outputfilterEnabled = rex_config::get('erecht24', 'outputfilter_enabled', true);
+
+$outputfilterForm = '';
+$n = [];
+$n['label'] = '<label for="outputfilter_enabled">Outputfilter aktivieren</label>';
+$n['field'] = '<input type="checkbox" id="outputfilter_enabled" name="outputfilter_enabled" value="1" ' . ($outputfilterEnabled ? 'checked="checked"' : '') . '> <small>Ersetzt automatisch Platzhalter im Frontend und Backend-Vorschau</small>';
+$formElements = [$n];
+
+$fragment = new rex_fragment();
+$fragment->setVar('elements', $formElements, false);
+$outputfilterForm .= $fragment->parse('core/form/form.php');
+
+// Save-Button
+$formElements = [];
+$n = [];
+$n['field'] = '<button class="btn btn-save rex-form-aligned" type="submit" name="save" value="Speichern">Speichern</button>';
+$formElements[] = $n;
+
+$fragment = new rex_fragment();
+$fragment->setVar('elements', $formElements, false);
+$outputfilterButtons = $fragment->parse('core/form/submit.php');
+$outputfilterButtons = '<fieldset class="rex-form-action">' . $outputfilterButtons . '</fieldset>';
+
+$fragment = new rex_fragment();
+$fragment->setVar('class', 'edit', false);
+$fragment->setVar('title', 'Outputfilter');
+$fragment->setVar('body', $outputfilterForm, false);
+$fragment->setVar('buttons', $outputfilterButtons, false);
+$outputfilterOutput = $fragment->parse('core/page/section.php');
+
+$outputfilterOutput = '
+<form action="' . rex_url::currentBackendPage() . '" method="post">
+<input type="hidden" name="formsubmit" value="2" />
+    ' . $csrfToken->getHiddenField() . '
+    ' . $outputfilterOutput . '
+</form>
+';
+
+echo $outputfilterOutput;
+
 // Outputfilter Modal Button
 $modalContent = '<div class="alert alert-info">';
 $modalContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
@@ -239,20 +289,10 @@ $modal = '
 </div>
 ';
 
-$buttonSection = '
-<div class="rex-page-section">
-    <div class="panel panel-default">
-        <header class="panel-heading"><div class="panel-title">Outputfilter</div></header>
-        <div class="panel-body">
-            <p>Der Outputfilter ersetzt automatisch Platzhalter im Frontend und Backend.</p>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#outputfilterModal">
-                <i class="rex-icon fa-code"></i> Verfügbare Platzhalter anzeigen
-            </button>
-        </div>
-    </div>
-</div>
-';
-
-echo $buttonSection;
+echo '<div style="margin-top: 20px;">
+    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#outputfilterModal">
+        <i class="rex-icon fa-code"></i> Verfügbare Platzhalter anzeigen
+    </button>
+</div>';
 echo $modal;
 
