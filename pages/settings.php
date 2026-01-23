@@ -149,10 +149,9 @@ $listOutput = $fragment->parse('core/page/section.php');
 echo $formOutput;
 echo $listOutput;
 
-// Outputfilter Hilfe
-$helpContent = '<div class="alert alert-info">';
-$helpContent .= '<h4>' . $addon->i18n('outputfilter_title') . '</h4>';
-$helpContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
+// Outputfilter Modal Button
+$modalContent = '<div class="alert alert-info">';
+$modalContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
 
 // Zeige verfügbare Platzhalter basierend auf vorhandenen Daten
 try {
@@ -164,9 +163,9 @@ try {
     $availableTexts = $sql->getArray();
 
     if (count($availableTexts) > 0) {
-        $helpContent .= '<div class="alert alert-success">';
-        $helpContent .= '<strong>Verfügbare Platzhalter für deine Daten:</strong><br>';
-        $helpContent .= '<pre><code>';
+        $modalContent .= '<div class="alert alert-success">';
+        $modalContent .= '<strong>Verfügbare Platzhalter für deine Daten:</strong><br>';
+        $modalContent .= '<pre style="background: #f5f5f5; padding: 10px; max-height: 300px; overflow-y: auto;"><code>';
         foreach ($availableTexts as $text) {
             $typeMap = [
                 'imprint' => 'IMPRINT',
@@ -175,59 +174,85 @@ try {
             ];
             $shortType = $typeMap[$text['type']] ?? strtoupper($text['type']);
             
-            // Mit ID
-            if (!empty($text['html_de'])) {
-                $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':de##' . "\n";
-            }
-            if (!empty($text['html_en'])) {
-                $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':en##' . "\n";
-            }
-            
             // Mit Domain
             if (!empty($text['html_de'])) {
-                $helpContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':de##' . "\n";
+                $modalContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':de##' . "\n";
+            }
+            if (!empty($text['html_en'])) {
+                $modalContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':en##' . "\n";
             }
         }
-        $helpContent .= '</code></pre>';
-        $helpContent .= '</div>';
+        $modalContent .= '</code></pre>';
+        $modalContent .= '</div>';
     } else {
-        $helpContent .= '<div class="alert alert-warning">';
-        $helpContent .= '<strong>Noch keine Texte vorhanden.</strong><br>';
-        $helpContent .= 'Bitte synchronisiere die Texte über den Sync-Button im eRecht24 Projekt Manager oder nutze die Test-Funktion.';
-        $helpContent .= '</div>';
+        $modalContent .= '<div class="alert alert-warning">';
+        $modalContent .= '<strong>Noch keine Texte vorhanden.</strong><br>';
+        $modalContent .= 'Bitte synchronisiere die Texte über den "Test"-Button bei der jeweiligen Domain.';
+        $modalContent .= '</div>';
     }
 } catch (Exception $e) {
-    $helpContent .= '<div class="alert alert-danger">';
-    $helpContent .= 'Fehler beim Laden der Texte: ' . rex_escape($e->getMessage());
-    $helpContent .= '</div>';
+    $modalContent .= '<div class="alert alert-danger">';
+    $modalContent .= 'Fehler beim Laden der Texte: ' . rex_escape($e->getMessage());
+    $modalContent .= '</div>';
 }
 
-$helpContent .= '<h5>' . $addon->i18n('outputfilter_usage') . '</h5>';
-$helpContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
-$helpContent .= '<ul>';
-$helpContent .= '<li>' . $addon->i18n('outputfilter_type') . '</li>';
-$helpContent .= '<li>' . $addon->i18n('outputfilter_identifier') . '</li>';
-$helpContent .= '<li>' . $addon->i18n('outputfilter_lang') . '</li>';
-$helpContent .= '</ul>';
-$helpContent .= '<h5>' . $addon->i18n('outputfilter_examples') . '</h5>';
-$helpContent .= '<pre><code>';
-$helpContent .= '&lt;!-- Datenschutzerklärung mit ID --&gt;' . "\n";
-$helpContent .= '##ER-PRIVACY:1:de##' . "\n\n";
-$helpContent .= '&lt;!-- Impressum mit Domain --&gt;' . "\n";
-$helpContent .= '##ER-IMPRINT:example.com:de##' . "\n\n";
-$helpContent .= '&lt;!-- Datenschutz Social Media auf Englisch --&gt;' . "\n";
-$helpContent .= '##ER-PRIVACY-SOCIAL:example.com:en##' . "\n\n";
-$helpContent .= '&lt;!-- In Modulen oder Templates --&gt;' . "\n";
-$helpContent .= '&lt;div class="legal-text"&gt;' . "\n";
-$helpContent .= '    &lt;h2&gt;Datenschutzerklärung&lt;/h2&gt;' . "\n";
-$helpContent .= '    ##ER-PRIVACY:1:de##' . "\n";
-$helpContent .= '&lt;/div&gt;';
-$helpContent .= '</code></pre>';
-$helpContent .= '<p><small>' . $addon->i18n('outputfilter_note') . '</small></p>';
-$helpContent .= '</div>';
+$modalContent .= '<h5>Verwendung</h5>';
+$modalContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
+$modalContent .= '<ul>';
+$modalContent .= '<li>' . $addon->i18n('outputfilter_type') . '</li>';
+$modalContent .= '<li>' . $addon->i18n('outputfilter_identifier') . '</li>';
+$modalContent .= '<li>' . $addon->i18n('outputfilter_lang') . '</li>';
+$modalContent .= '</ul>';
+$modalContent .= '<h5>Beispiele</h5>';
+$modalContent .= '<pre style="background: #f5f5f5; padding: 10px;"><code>';
+$modalContent .= '&lt;!-- Datenschutzerklärung --&gt;' . "\n";
+$modalContent .= '##ER-PRIVACY:example.com:de##' . "\n\n";
+$modalContent .= '&lt;!-- Impressum --&gt;' . "\n";
+$modalContent .= '##ER-IMPRINT:example.com:de##' . "\n\n";
+$modalContent .= '&lt;!-- Datenschutz Social Media --&gt;' . "\n";
+$modalContent .= '##ER-PRIVACY-SOCIAL:example.com:en##' . "\n\n";
+$modalContent .= '&lt;!-- In Modulen oder Templates --&gt;' . "\n";
+$modalContent .= '&lt;div class="legal-text"&gt;' . "\n";
+$modalContent .= '    &lt;h2&gt;Datenschutzerklärung&lt;/h2&gt;' . "\n";
+$modalContent .= '    ##ER-PRIVACY:example.com:de##' . "\n";
+$modalContent .= '&lt;/div&gt;';
+$modalContent .= '</code></pre>';
+$modalContent .= '</div>';
 
-$fragment = new rex_fragment();
-$fragment->setVar('title', $addon->i18n('outputfilter_title'));
-$fragment->setVar('content', $helpContent, false);
-echo $fragment->parse('core/page/section.php');
+// Modal HTML
+$modal = '
+<div class="modal fade" id="outputfilterModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">' . $addon->i18n('outputfilter_title') . '</h4>
+            </div>
+            <div class="modal-body">
+                ' . $modalContent . '
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+';
+
+$buttonSection = '
+<div class="rex-page-section">
+    <div class="panel panel-default">
+        <header class="panel-heading"><div class="panel-title">Outputfilter</div></header>
+        <div class="panel-body">
+            <p>Der Outputfilter ersetzt automatisch Platzhalter im Frontend und Backend.</p>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#outputfilterModal">
+                <i class="rex-icon fa-code"></i> Verfügbare Platzhalter anzeigen
+            </button>
+        </div>
+    </div>
+</div>
+';
+
+echo $buttonSection;
+echo $modal;
 
