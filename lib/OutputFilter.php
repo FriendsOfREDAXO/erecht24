@@ -7,6 +7,7 @@ namespace FriendsOfRedaxo\eRecht24;
 use rex;
 use rex_extension;
 use rex_extension_point;
+use rex_logger;
 use rex_request;
 
 use function in_array;

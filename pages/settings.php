@@ -153,6 +153,42 @@ echo $listOutput;
 $helpContent = '<div class="alert alert-info">';
 $helpContent .= '<h4>' . $addon->i18n('outputfilter_title') . '</h4>';
 $helpContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
+
+// Zeige verfügbare Platzhalter basierend auf vorhandenen Daten
+$availableTexts = rex_sql::factory()->getArray('SELECT e.id, e.domain, t.type, t.html_de, t.html_en 
+    FROM ' . rex::getTable('erecht24') . ' e
+    LEFT JOIN ' . rex::getTable('erecht24_texts') . ' t ON e.domain = t.domain
+    WHERE t.type IS NOT NULL');
+
+if (count($availableTexts) > 0) {
+    $helpContent .= '<div class="alert alert-success">';
+    $helpContent .= '<strong>Verfügbare Platzhalter für deine Daten:</strong><br>';
+    $helpContent .= '<pre><code>';
+    foreach ($availableTexts as $text) {
+        $typeMap = [
+            'imprint' => 'IMPRINT',
+            'privacyPolicy' => 'PRIVACY',
+            'privacyPolicySocialMedia' => 'PRIVACY-SOCIAL',
+        ];
+        $shortType = $typeMap[$text['type']] ?? strtoupper($text['type']);
+        
+        // Mit ID
+        if (!empty($text['html_de'])) {
+            $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':de##' . "\n";
+        }
+        if (!empty($text['html_en'])) {
+            $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':en##' . "\n";
+        }
+        
+        // Mit Domain
+        if (!empty($text['html_de'])) {
+            $helpContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':de##' . "\n";
+        }
+    }
+    $helpContent .= '</code></pre>';
+    $helpContent .= '</div>';
+}
+
 $helpContent .= '<h5>' . $addon->i18n('outputfilter_usage') . '</h5>';
 $helpContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
 $helpContent .= '<ul>';
