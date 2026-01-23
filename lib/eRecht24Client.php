@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace FriendsOfRedaxo\eRecht24;
@@ -7,12 +8,12 @@ use eRecht24\RechtstexteSDK\ApiHandler;
 use eRecht24\RechtstexteSDK\Model\Client;
 use rex;
 use rex_exception;
-use rex_logger; 
+use rex_logger;
 use rex_sql;
 
 /**
- * Client class for eRecht24 integration
- * 
+ * Client class for eRecht24 integration.
+ *
  * @phpstan-type ClientData array{
  *   id: int,
  *   domain: string,
@@ -23,18 +24,17 @@ use rex_sql;
  *   createdate: string
  * }
  */
-class eRecht24Client 
+class eRecht24Client
 {
     public const PLUGIN_KEY = 'ML7mWFmozzpDNDbUtYUM7UghXCsi37nWumSrMAk3Y4nCihQQZK7H7LJ9ufx4fyJu';
     public const DEBUG = false;
 
     /**
-     * Registers a new client with eRecht24 and stores it in the database
-     * 
+     * Registers a new client with eRecht24 and stores it in the database.
+     *
      * @param string $domain The domain to register
      * @param string $apiKey The API key for eRecht24
      * @throws rex_exception If registration fails or domain already exists
-     * @return void
      */
     public static function register(string $domain, string $apiKey): void
     {
@@ -42,34 +42,34 @@ class eRecht24Client
         $sql = rex_sql::factory();
         $existingDomains = $sql->setQuery(
             'SELECT domain FROM ' . rex::getTable('erecht24') . ' WHERE domain = :domain',
-            ['domain' => $domain]
+            ['domain' => $domain],
         )->getArray();
-        
+
         if (!empty($existingDomains)) {
             throw new rex_exception('Diese Domain ist bereits registriert.');
         }
 
         // Initialize API handler
         $apiHandler = new ApiHandler($apiKey, self::PLUGIN_KEY);
-        
+
         // Create new client
         $pushUrl = rtrim(rex::getServer(), '/') . '/index.php?rex-api-call=erecht24_push';
         rex_logger::factory()->info('Push URL: ' . $pushUrl);
-        
+
         $client = (new Client())
             ->setPushUri($pushUrl)
-            ->setPushMethod('POST')                     
-            ->setCms('REDAXO')                       
+            ->setPushMethod('POST')
+            ->setCms('REDAXO')
             ->setCmsVersion(rex::getVersion())
             ->setPluginName('redaxo/erecht24')
             ->setAuthorMail(rex::getErrorEmail());
-            
+
         // Register client with eRecht24
         $registeredClient = $apiHandler->createClient($client);
         if (!$apiHandler->isLastResponseSuccess()) {
             throw new rex_exception($apiHandler->getLastErrorMessage('de') ?? 'Unknown error');
         }
-        
+
         // Store in database
         $sql = rex_sql::factory();
         $sql->setTable(rex::getTable('erecht24'));
@@ -83,26 +83,25 @@ class eRecht24Client
     }
 
     /**
-     * Unregisters a client from eRecht24 and removes it from the database
-     * 
+     * Unregisters a client from eRecht24 and removes it from the database.
+     *
      * @param string $domain The domain to unregister
-     * @return void
      */
-    public static function unregister(string $domain): void 
+    public static function unregister(string $domain): void
     {
         // Get client info
         $sql = rex_sql::factory();
-        /** @var ClientData[] $clients */
+        /** @var array<ClientData> $clients */
         $clients = $sql->setQuery('SELECT * FROM ' . rex::getTable('erecht24') . ' WHERE domain = :domain', ['domain' => $domain])->getArray();
-        
+
         if (!empty($clients)) {
             /** @var ClientData $client */
             $client = $clients[0];
-            
+
             // Delete from eRecht24
             if ($client['api_key'] && $client['client_id']) {
                 $apiHandler = new ApiHandler($client['api_key'], self::PLUGIN_KEY);
-                $apiHandler->deleteClient((int)$client['client_id']);
+                $apiHandler->deleteClient((int) $client['client_id']);
             }
 
             // Delete from database

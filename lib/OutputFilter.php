@@ -1,0 +1,127 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FriendsOfRedaxo\eRecht24;
+
+use rex;
+use rex_extension;
+use rex_extension_point;
+use rex_request;
+
+use function in_array;
+
+/**
+ * Outputfilter für eRecht24 Rechtstexte
+ * Ersetzt Platzhalter wie ##ER-PRIVACY:1:de## mit den entsprechenden Rechtstexten.
+ */
+class OutputFilter
+{
+    /**
+     * Registriert den Outputfilter.
+     */
+    public static function register(): void
+    {
+        rex_extension::register('OUTPUT_FILTER', [self::class, 'filter']);
+    }
+
+    /**
+     * Filtert den Output und ersetzt eRecht24 Platzhalter.
+     *
+     * @param rex_extension_point<string> $ep
+     */
+    public static function filter(rex_extension_point $ep): string
+    {
+        $content = $ep->getSubject();
+
+        // Nicht im Edit-Modus des Structure Content Plugins filtern
+        if (self::isStructureEditMode()) {
+            return $content;
+        }
+
+        // Suche nach allen eRecht24 Platzhaltern
+        // Format: ##ER-{TYPE}:{IDENTIFIER}:{LANG}##
+        // Beispiele: ##ER-PRIVACY:1:de##, ##ER-IMPRINT:example.com:en##
+        $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([^:]+):([a-z]{2})##/i';
+
+        return preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
+    }
+
+    /**
+     * Ersetzt einen einzelnen Platzhalter.
+     *
+     * @param array<int, string> $matches
+     */
+    private static function replacePlaceholder(array $matches): string
+    {
+        $typeShort = strtoupper($matches[1]);
+        $identifier = $matches[2];
+        $lang = strtolower($matches[3]);
+
+        // Konvertiere Kurzform zu vollständigem Typ
+        $type = self::convertType($typeShort);
+
+        if (null === $type) {
+            // Ungültiger Typ - gib Platzhalter unverändert zurück
+            return $matches[0];
+        }
+
+        // Hole den Text aus der Datenbank
+        $text = eRecht24::getText($identifier, $type, $lang);
+
+        // Wenn kein Text gefunden wurde, gib einen Kommentar zurück (für Entwicklung)
+        // oder leeren String (für Produktion)
+        if (null === $text || '' === $text) {
+            if (rex::isDebugMode()) {
+                return '<!-- eRecht24: Kein Text gefunden für ' . htmlspecialchars($matches[0]) . ' -->';
+            }
+            return '';
+        }
+
+        return $text;
+    }
+
+    /**
+     * Konvertiert die Kurzform des Typs zur vollständigen Form.
+     */
+    private static function convertType(string $typeShort): ?string
+    {
+        $mapping = [
+            'PRIVACY' => 'privacyPolicy',
+            'IMPRINT' => 'imprint',
+            'PRIVACY-SOCIAL' => 'privacyPolicySocialMedia',
+        ];
+
+        return $mapping[$typeShort] ?? null;
+    }
+
+    /**
+     * Prüft ob wir uns im Edit-Modus des Structure Content Plugins befinden.
+     */
+    private static function isStructureEditMode(): bool
+    {
+        // Im Frontend sind wir nie im Edit-Modus
+        if (!rex::isBackend()) {
+            return false;
+        }
+
+        // Prüfe ob wir in der Structure-Sektion sind
+        $page = rex_request::get('page', 'string', '');
+        $function = rex_request::get('function', 'string', '');
+
+        // Edit-Modus wenn:
+        // - Wir auf der content Seite sind
+        // - UND eine edit/add Funktion aufgerufen wird
+        // - ODER ein article_id Parameter vorhanden ist (Edit-Modus)
+        if ('content' === $page || 'content/edit' === $page) {
+            if (in_array($function, ['edit', 'add'], true)) {
+                return true;
+            }
+            if (rex_request::get('article_id', 'int', 0) > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

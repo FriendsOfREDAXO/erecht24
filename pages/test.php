@@ -1,6 +1,7 @@
 <?php
-use FriendsOfRedaxo\eRecht24\eRecht24Client;
 
+use eRecht24\RechtstexteSDK\ApiHandler;
+use FriendsOfRedaxo\eRecht24\eRecht24Client;
 
 $addon = rex_addon::get('erecht24');
 $id = rex_request('id', 'int');
@@ -15,10 +16,10 @@ $content .= '</div>';
 $sql = rex_sql::factory();
 $client = $sql->setQuery(
     'SELECT * FROM ' . rex::getTable('erecht24') . ' WHERE id = :id LIMIT 1',
-    ['id' => $id]
+    ['id' => $id],
 );
 
-if ($client->getRows() === 0) {
+if (0 === $client->getRows()) {
     echo rex_view::error($addon->i18n('domain_not_found'));
     return;
 }
@@ -45,26 +46,25 @@ $content .= '<div class="panel-heading"><div class="panel-title">' . $addon->i18
 $content .= '<div class="panel-body">';
 
 // Results section if test was performed
-if (rex_request_method() === 'post' && rex_csrf_token::factory('erecht24_test')->isValid()) {
+if ('post' === rex_request_method() && rex_csrf_token::factory('erecht24_test')->isValid()) {
     try {
         // Log test start
         rex_logger::factory()->info('Testing eRecht24 push for domain: ' . $clientData['domain']);
-        
+
         // Test push notification
-        $apiHandler = new eRecht24\RechtstexteSDK\ApiHandler(
+        $apiHandler = new ApiHandler(
             $clientData['api_key'],
-            eRecht24Client::PLUGIN_KEY
+            eRecht24Client::PLUGIN_KEY,
         );
-        
+
         rex_logger::factory()->info('Sending test push...');
-        
-        if ($apiHandler->fireTestPush((int)$clientData['client_id'])) {
+
+        if ($apiHandler->fireTestPush((int) $clientData['client_id'])) {
             rex_logger::factory()->info('Test push successful');
             $content .= rex_view::success($addon->i18n('test_success'));
         } else {
             throw new rex_exception($apiHandler->getLastErrorMessage('de') ?? 'Unknown error');
         }
-
     } catch (Throwable $e) {
         rex_logger::factory()->error('Test push error: ' . $e->getMessage());
         $content .= rex_view::error($addon->i18n('test_error') . ': ' . $e->getMessage());

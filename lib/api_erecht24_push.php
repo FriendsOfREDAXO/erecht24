@@ -1,18 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
-use \FriendsOfRedaxo\eRecht24\eRecht24Client;
+use eRecht24\RechtstexteSDK\LegalTextHandler;
+use FriendsOfRedaxo\eRecht24\eRecht24Client;
 
 class rex_api_erecht24_push extends rex_api_function
 {
-    protected  $published = true;
-    
-    public function execute(): rex_api_result 
+    protected $published = true;
+
+    public function execute(): rex_api_result
     {
         try {
             // Clear output buffer
             rex_response::cleanOutputBuffers();
-            
+
             // Set response headers
             header('Content-Type: application/json');
 
@@ -49,7 +51,7 @@ class rex_api_erecht24_push extends rex_api_function
             // Get domain record by secret
             $sql = rex_sql::factory();
             $domain = $sql->setQuery('SELECT domain, api_key FROM ' . rex::getTable('erecht24') . ' WHERE secret = :secret LIMIT 1', ['secret' => $secret])->getArray();
-            
+
             // Debug: Log domain lookup
             if (eRecht24Client::DEBUG) {
                 rex_logger::logError(1, 'Domain lookup result: ' . print_r($domain, true), __FILE__, __LINE__);
@@ -60,7 +62,7 @@ class rex_api_erecht24_push extends rex_api_function
             }
 
             // Handle ping requests
-            if ($type === 'ping') {
+            if ('ping' === $type) {
                 $this->sendSuccess(['code' => 200, 'message' => 'pong']);
             }
 
@@ -70,17 +72,17 @@ class rex_api_erecht24_push extends rex_api_function
             }
 
             $domain = $domain[0];
-            
+
             // Debug: Log API initialization
             if (eRecht24Client::DEBUG) {
                 rex_logger::logError(1, 'Initializing API handler with key: ' . substr($domain['api_key'], 0, 8) . '...', __FILE__, __LINE__);
             }
-            
+
             // Create API handler
-            $handler = new eRecht24\RechtstexteSDK\LegalTextHandler(
+            $handler = new LegalTextHandler(
                 $domain['api_key'],
                 $type,
-                eRecht24Client::PLUGIN_KEY
+                eRecht24Client::PLUGIN_KEY,
             );
 
             $document = $handler->importDocument();
@@ -100,17 +102,17 @@ class rex_api_erecht24_push extends rex_api_function
             // Store text in database
             try {
                 $table = rex::getTable('erecht24_texts');
-                
+
                 // Check if text exists
                 $exists = rex_sql::factory()
                     ->setTable($table)
                     ->setWhere([
                         'domain' => $domain['domain'],
-                        'type' => $type
+                        'type' => $type,
                     ])
                     ->select()
                     ->getRows() > 0;
-                
+
                 // Prepare data
                 $sql = rex_sql::factory();
                 $sql->setTable($table);
@@ -124,7 +126,7 @@ class rex_api_erecht24_push extends rex_api_function
                 if ($exists) {
                     $sql->setWhere([
                         'domain' => $domain['domain'],
-                        'type' => $type
+                        'type' => $type,
                     ]);
                     $sql->update();
                 } else {
@@ -139,7 +141,6 @@ class rex_api_erecht24_push extends rex_api_function
 
             // Send successful response
             $this->sendSuccess(['message' => 'Text updated']);
-
         } catch (Throwable $e) {
             // Log error
             if (eRecht24Client::DEBUG) {
@@ -154,21 +155,21 @@ class rex_api_erecht24_push extends rex_api_function
         return false;
     }
 
-    private function sendError(int $code, string $message): never 
+    private function sendError(int $code, string $message): never
     {
         $codes = [
             400 => 'HTTP/1.1 400 Bad Request',
             401 => 'HTTP/1.1 401 Unauthorized',
             422 => 'HTTP/1.1 422 Unprocessable Entity',
-            500 => 'HTTP/1.1 500 Internal Server Error'
+            500 => 'HTTP/1.1 500 Internal Server Error',
         ];
-        
+
         header($codes[$code] ?? 'HTTP/1.1 500 Internal Server Error');
         echo json_encode(['message' => $message]);
         exit;
     }
 
-    private function sendSuccess(array $data): never 
+    private function sendSuccess(array $data): never
     {
         header('HTTP/1.1 200 OK');
         echo json_encode($data);

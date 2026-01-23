@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 // Install database table for API keys
 rex_sql_table::get(rex::getTable('erecht24'))
     ->ensurePrimaryIdColumn()

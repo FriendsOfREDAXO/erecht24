@@ -48,3 +48,17 @@ erecht24_push_url = Push-URL
 
 # Vorschau
 erecht24_preview_title = Text-Vorschau
+
+# Outputfilter
+erecht24_outputfilter_title = Outputfilter
+erecht24_outputfilter_info = Der Outputfilter ersetzt automatisch Platzhalter im Frontend und Backend.
+erecht24_outputfilter_usage = Verwendung
+erecht24_outputfilter_examples = Beispiele für Platzhalter:
+erecht24_outputfilter_example_privacy = Datenschutzerklärung: <code>##ER-PRIVACY:1:de##</code>
+erecht24_outputfilter_example_imprint = Impressum: <code>##ER-IMPRINT:1:de##</code>
+erecht24_outputfilter_example_privacy_social = Datenschutz Social Media: <code>##ER-PRIVACY-SOCIAL:example.com:de##</code>
+erecht24_outputfilter_pattern = Muster: <code>##ER-{TYPE}:{IDENTIFIER}:{LANG}##</code>
+erecht24_outputfilter_type = TYPE: PRIVACY, IMPRINT oder PRIVACY-SOCIAL
+erecht24_outputfilter_identifier = IDENTIFIER: ID (Zahl) oder Domain
+erecht24_outputfilter_lang = LANG: de oder en
+erecht24_outputfilter_note = Hinweis: Im Edit-Modus des Structure Content Plugins werden die Platzhalter nicht ersetzt.

@@ -110,7 +110,63 @@ if (eRecht24::hasText($domain, 'privacyPolicy', $language)) {
 }
 ```
 
-> Tipp: Als Platzhalter im XoutputFiler-AddOn verwenden.
+> Tipp: Als Platzhalter im Outputfilter verwenden.
+
+## Outputfilter
+
+Das Addon bietet einen automatischen Outputfilter, der Platzhalter im Frontend und Backend ersetzt. Der Filter ist **automatisch aktiv** nach der Installation und funktioniert sowohl im Frontend als auch im Backend (außer im Edit-Modus des Structure Content Plugins).
+
+### Platzhalter-Syntax
+
+```
+##ER-{TYPE}:{IDENTIFIER}:{LANG}##
+```
+
+**Parameter:**
+- `TYPE`: Der Typ des Rechtstextes
+  - `PRIVACY` - Datenschutzerklärung
+  - `IMPRINT` - Impressum
+  - `PRIVACY-SOCIAL` - Datenschutzerklärung Social Media
+- `IDENTIFIER`: Domain (String) oder ID (Zahl) des Eintrags
+- `LANG`: Sprache (`de` oder `en`)
+
+### Beispiele
+
+```html
+<!-- Datenschutzerklärung mit ID -->
+##ER-PRIVACY:1:de##
+
+<!-- Impressum mit Domain -->
+##ER-IMPRINT:example.com:de##
+
+<!-- Datenschutz Social Media auf Englisch -->
+##ER-PRIVACY-SOCIAL:example.com:en##
+
+<!-- In Modulen oder Templates -->
+<div class="legal-text">
+    <h2>Datenschutzerklärung</h2>
+    ##ER-PRIVACY:1:de##
+</div>
+
+<footer>
+    ##ER-IMPRINT:example.com:de##
+</footer>
+```
+
+### Verhalten
+
+- **Frontend**: Platzhalter werden immer ersetzt
+- **Backend**: Platzhalter werden ersetzt (außer im Edit-Modus von Structure Content)
+- **Debug-Modus**: Bei fehlenden Texten wird ein HTML-Kommentar eingefügt
+- **Produktion**: Bei fehlenden Texten wird ein leerer String zurückgegeben
+
+### Verwendung in REDAXO
+
+Der Outputfilter kann überall verwendet werden:
+- In Templates
+- In Modulen
+- In YForm-Ausgaben
+- In beliebigen HTML-Bereichen
 
 
 ### Programmatische Verwaltung

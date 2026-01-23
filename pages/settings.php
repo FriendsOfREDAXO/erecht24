@@ -1,7 +1,8 @@
 <?php
+
 $addon = rex_addon::get('erecht24');
 
-use \FriendsOfRedaxo\eRecht24\eRecht24Client;
+use FriendsOfRedaxo\eRecht24\eRecht24Client;
 
 $content = '';
 $buttons = '';
@@ -15,7 +16,7 @@ if ('1' == rex_post('formsubmit', 'string') && !$csrfToken->isValid()) {
 } elseif ('1' == rex_post('formsubmit', 'string')) {
     $domain = rex_post('domain', 'string');
     $apiKey = rex_post('api_key', 'string');
-    
+
     if (!$domain || !$apiKey) {
         echo rex_view::error($addon->i18n('missing_fields'));
     } else {
@@ -29,7 +30,7 @@ if ('1' == rex_post('formsubmit', 'string') && !$csrfToken->isValid()) {
 }
 
 // Handle delete
-if (rex_get('func', 'string') === 'delete' && ($domain = rex_get('domain', 'string'))) {
+if ('delete' === rex_get('func', 'string') && ($domain = rex_get('domain', 'string'))) {
     try {
         eRecht24Client::unregister($domain);
         echo rex_view::success($addon->i18n('domain_deleted'));
@@ -44,7 +45,7 @@ $formElements = [];
 // Domain field
 $n = [];
 $n['label'] = '<label for="domain">' . $addon->i18n('domain') . '</label>';
-$n['field'] = '<input class="form-control" type="text" id="domain" name="domain" value="'.rex_escape(rex_server('SERVER_NAME', 'string', '')).'">';
+$n['field'] = '<input class="form-control" type="text" id="domain" name="domain" value="' . rex_escape(rex_server('SERVER_NAME', 'string', '')) . '">';
 $formElements[] = $n;
 
 // API Key field
@@ -97,7 +98,7 @@ $listContent .= '<th class="rex-table-action">' . $addon->i18n('functions') . '<
 $listContent .= '</tr></thead>';
 $listContent .= '<tbody>';
 
-if (count($list) === 0) {
+if (0 === count($list)) {
     $listContent .= '<tr><td colspan="7">' . $addon->i18n('no_domains') . '</td></tr>';
 } else {
     foreach ($list as $item) {
@@ -147,3 +148,28 @@ $listOutput = $fragment->parse('core/page/section.php');
 // Final output
 echo $formOutput;
 echo $listOutput;
+
+// Outputfilter Hilfe
+$helpContent = '<div class="alert alert-info">';
+$helpContent .= '<h4>' . $addon->i18n('outputfilter_title') . '</h4>';
+$helpContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
+$helpContent .= '<h5>' . $addon->i18n('outputfilter_usage') . '</h5>';
+$helpContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
+$helpContent .= '<ul>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_type') . '</li>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_identifier') . '</li>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_lang') . '</li>';
+$helpContent .= '</ul>';
+$helpContent .= '<h5>' . $addon->i18n('outputfilter_examples') . '</h5>';
+$helpContent .= '<ul>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_example_privacy') . '</li>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_example_imprint') . '</li>';
+$helpContent .= '<li>' . $addon->i18n('outputfilter_example_privacy_social') . '</li>';
+$helpContent .= '</ul>';
+$helpContent .= '<p><small>' . $addon->i18n('outputfilter_note') . '</small></p>';
+$helpContent .= '</div>';
+
+$fragment = new rex_fragment();
+$fragment->setVar('title', $addon->i18n('outputfilter_title'));
+$fragment->setVar('content', $helpContent, false);
+echo $fragment->parse('core/page/section.php');
