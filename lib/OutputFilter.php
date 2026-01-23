@@ -52,8 +52,8 @@ class OutputFilter
         }
 
         // Suche nach allen eRecht24 Platzhaltern
-        // Format: ##ER-{TYPE}:{IDENTIFIER}:{LANG}##
-        // Beispiele: ##ER-PRIVACY:1:de##, ##ER-IMPRINT:example.com:en##
+        // Format: ##ER-{TYPE}:{DOMAIN}:{LANG}##
+        // Beispiele: ##ER-PRIVACY:example.com:de##, ##ER-IMPRINT:example.com:en##
         $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([^:]+):([a-z]{2})##/i';
 
         $result = preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);

@@ -202,21 +202,6 @@ try {
     $helpContent .= 'Fehler beim Laden der Texte: ' . rex_escape($e->getMessage());
     $helpContent .= '</div>';
 }
-        if (!empty($text['html_de'])) {
-            $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':de##' . "\n";
-        }
-        if (!empty($text['html_en'])) {
-            $helpContent .= '##ER-' . $shortType . ':' . $text['id'] . ':en##' . "\n";
-        }
-        
-        // Mit Domain
-        if (!empty($text['html_de'])) {
-            $helpContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':de##' . "\n";
-        }
-    }
-    $helpContent .= '</code></pre>';
-    $helpContent .= '</div>';
-}
 
 $helpContent .= '<h5>' . $addon->i18n('outputfilter_usage') . '</h5>';
 $helpContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
@@ -246,3 +231,4 @@ $fragment = new rex_fragment();
 $fragment->setVar('title', $addon->i18n('outputfilter_title'));
 $fragment->setVar('content', $helpContent, false);
 echo $fragment->parse('core/page/section.php');
+
