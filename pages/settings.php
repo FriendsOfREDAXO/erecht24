@@ -103,12 +103,13 @@ $listContent .= '<th>' . $addon->i18n('api_key') . '</th>';
 $listContent .= '<th>' . $addon->i18n('client_id') . '</th>';
 $listContent .= '<th>' . $addon->i18n('last_update') . '</th>';
 $listContent .= '<th>' . $addon->i18n('last_fetch') . '</th>';
+$listContent .= '<th>Platzhalter</th>';
 $listContent .= '<th class="rex-table-action">' . $addon->i18n('functions') . '</th>';
 $listContent .= '</tr></thead>';
 $listContent .= '<tbody>';
 
 if (0 === count($list)) {
-    $listContent .= '<tr><td colspan="7">' . $addon->i18n('no_domains') . '</td></tr>';
+    $listContent .= '<tr><td colspan="8">' . $addon->i18n('no_domains') . '</td></tr>';
 } else {
     foreach ($list as $item) {
         $listContent .= '<tr>';
@@ -118,6 +119,11 @@ if (0 === count($list)) {
         $listContent .= '<td>' . rex_escape($item['client_id']) . '</td>';
         $listContent .= '<td>' . rex_formatter::strftime($item['updatedate'], 'datetime') . '</td>';
         $listContent .= '<td>' . ($item['last_fetch'] ? rex_formatter::strftime($item['last_fetch'], 'datetime') : '-') . '</td>';
+        $listContent .= '<td>';
+        $listContent .= '<button type="button" class="btn btn-xs btn-info" data-toggle="modal" data-target="#placeholderModal' . $item['id'] . '">';
+        $listContent .= '<i class="rex-icon fa-code"></i> Platzhalter';
+        $listContent .= '</button>';
+        $listContent .= '</td>';
         $listContent .= '<td class="rex-table-action">';
         $listContent .= '<a href="' . rex_url::backendPage('erecht24/preview', ['id' => $item['id']]) . '" class="rex-link-expanded">';
         $listContent .= '<i class="rex-icon fa-eye"></i> ' . $addon->i18n('preview') . '</a>';
@@ -199,100 +205,67 @@ $outputfilterOutput = '
 
 echo $outputfilterOutput;
 
-// Outputfilter Modal Button
-$modalContent = '<div class="alert alert-info">';
-$modalContent .= '<p>' . $addon->i18n('outputfilter_info') . '</p>';
-
-// Zeige verfügbare Platzhalter basierend auf vorhandenen Daten
+// Domain-spezifische Modals erstellen
 try {
-    $sql = rex_sql::factory();
-    $sql->setQuery('SELECT t.domain, t.type, t.html_de, t.html_en 
-        FROM ' . rex::getTable('erecht24_texts') . ' t
-        ORDER BY t.domain, t.type');
+    $typeMap = [
+        'imprint' => 'IMPRINT',
+        'privacyPolicy' => 'PRIVACY',
+        'privacyPolicySocialMedia' => 'PRIVACY-SOCIAL',
+    ];
     
-    $availableTexts = $sql->getArray();
-
-    if (count($availableTexts) > 0) {
-        $modalContent .= '<div class="alert alert-success">';
-        $modalContent .= '<strong>Verfügbare Platzhalter für deine Daten:</strong><br>';
-        $modalContent .= '<pre style="background: #f5f5f5; padding: 10px; max-height: 300px; overflow-y: auto;"><code>';
-        foreach ($availableTexts as $text) {
-            $typeMap = [
-                'imprint' => 'IMPRINT',
-                'privacyPolicy' => 'PRIVACY',
-                'privacyPolicySocialMedia' => 'PRIVACY-SOCIAL',
-            ];
-            $shortType = $typeMap[$text['type']] ?? strtoupper($text['type']);
-            
-            // Mit Domain
-            if (!empty($text['html_de'])) {
-                $modalContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':de##' . "\n";
+    foreach ($list as $item) {
+        // Hole Texte für diese Domain
+        $sql = rex_sql::factory();
+        $sql->setQuery('SELECT type, html_de, html_en 
+            FROM ' . rex::getTable('erecht24_texts') . ' 
+            WHERE domain = :domain
+            ORDER BY type', ['domain' => $item['domain']]);
+        
+        $domainTexts = $sql->getArray();
+        
+        $modalContent = '';
+        
+        if (count($domainTexts) > 0) {
+            $modalContent .= '<pre style="background: #f5f5f5; padding: 10px; max-height: 300px; overflow-y: auto;"><code>';
+            foreach ($domainTexts as $text) {
+                $shortType = $typeMap[$text['type']] ?? strtoupper($text['type']);
+                
+                if (!empty($text['html_de'])) {
+                    $modalContent .= '##ER-' . $shortType . ':' . rex_escape($item['domain']) . ':de##' . "\n";
+                }
+                if (!empty($text['html_en'])) {
+                    $modalContent .= '##ER-' . $shortType . ':' . rex_escape($item['domain']) . ':en##' . "\n";
+                }
             }
-            if (!empty($text['html_en'])) {
-                $modalContent .= '##ER-' . $shortType . ':' . rex_escape($text['domain']) . ':en##' . "\n";
-            }
+            $modalContent .= '</code></pre>';
+        } else {
+            $modalContent .= '<div class="alert alert-warning">';
+            $modalContent .= '<strong>Noch keine Texte vorhanden.</strong><br>';
+            $modalContent .= 'Bitte synchronisiere die Texte über den "Test"-Button.';
+            $modalContent .= '</div>';
         }
-        $modalContent .= '</code></pre>';
-        $modalContent .= '</div>';
-    } else {
-        $modalContent .= '<div class="alert alert-warning">';
-        $modalContent .= '<strong>Noch keine Texte vorhanden.</strong><br>';
-        $modalContent .= 'Bitte synchronisiere die Texte über den "Test"-Button bei der jeweiligen Domain.';
-        $modalContent .= '</div>';
-    }
-} catch (Exception $e) {
-    $modalContent .= '<div class="alert alert-danger">';
-    $modalContent .= 'Fehler beim Laden der Texte: ' . rex_escape($e->getMessage());
-    $modalContent .= '</div>';
-}
-
-$modalContent .= '<h5>Verwendung</h5>';
-$modalContent .= '<p>' . $addon->i18n('outputfilter_pattern') . '</p>';
-$modalContent .= '<ul>';
-$modalContent .= '<li>' . $addon->i18n('outputfilter_type') . '</li>';
-$modalContent .= '<li>' . $addon->i18n('outputfilter_identifier') . '</li>';
-$modalContent .= '<li>' . $addon->i18n('outputfilter_lang') . '</li>';
-$modalContent .= '</ul>';
-$modalContent .= '<h5>Beispiele</h5>';
-$modalContent .= '<pre style="background: #f5f5f5; padding: 10px;"><code>';
-$modalContent .= '&lt;!-- Datenschutzerklärung --&gt;' . "\n";
-$modalContent .= '##ER-PRIVACY:example.com:de##' . "\n\n";
-$modalContent .= '&lt;!-- Impressum --&gt;' . "\n";
-$modalContent .= '##ER-IMPRINT:example.com:de##' . "\n\n";
-$modalContent .= '&lt;!-- Datenschutz Social Media --&gt;' . "\n";
-$modalContent .= '##ER-PRIVACY-SOCIAL:example.com:en##' . "\n\n";
-$modalContent .= '&lt;!-- In Modulen oder Templates --&gt;' . "\n";
-$modalContent .= '&lt;div class="legal-text"&gt;' . "\n";
-$modalContent .= '    &lt;h2&gt;Datenschutzerklärung&lt;/h2&gt;' . "\n";
-$modalContent .= '    ##ER-PRIVACY:example.com:de##' . "\n";
-$modalContent .= '&lt;/div&gt;';
-$modalContent .= '</code></pre>';
-$modalContent .= '</div>';
-
-// Modal HTML
-$modal = '
-<div class="modal fade" id="outputfilterModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">' . $addon->i18n('outputfilter_title') . '</h4>
-            </div>
-            <div class="modal-body">
-                ' . $modalContent . '
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+        
+        // Modal für diese Domain
+        echo '
+        <div class="modal fade" id="placeholderModal' . $item['id'] . '" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Platzhalter für ' . rex_escape($item['domain']) . '</h4>
+                    </div>
+                    <div class="modal-body">
+                        ' . $modalContent . '
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-';
-
-echo '<div style="margin-top: 20px;">
-    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#outputfilterModal">
-        <i class="rex-icon fa-code"></i> Verfügbare Platzhalter anzeigen
-    </button>
-</div>';
-echo $modal;
+        ';
+    }
+} catch (Exception $e) {
+    // Fehler beim Laden der Modals
+}
 
