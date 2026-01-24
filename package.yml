@@ -1,5 +1,5 @@
 package: erecht24
-version: '1.1.0'
+version: '1.2.0'
 author: 'Friends Of REDAXO'
 supportpage: https://github.com/FriendsOfREDAXO/erecht24
 load: early
@@ -10,9 +10,12 @@ page:
     icon: rex-icon fa-section
     subpages:
         settings: { title: 'translate:settings' }
+        advanced: { title: 'translate:advanced' }
+        webhook_log: { title: 'translate:webhook_log' }
         preview: { title: 'translate:preview', hidden: true }
         test: { title: 'translate:test', hidden: true }
         help: { title: 'translate:help', subPath: README.md, itemClass: 'pull-right' }
+        changelog: { title: 'Changelog', subPath: CHANGELOG.md, itemClass: 'pull-right' }
 
 requires:
     redaxo: '^5.18'

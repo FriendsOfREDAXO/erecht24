@@ -42,6 +42,12 @@ class eRecht24
                 return false;
             }
 
+            // Validate language parameter to prevent SQL injection
+            if ($lang && !in_array($lang, ['de', 'en'])) {
+                rex_logger::logError(1, 'Invalid language parameter: ' . $lang, __FILE__, __LINE__);
+                return false;
+            }
+
             // Check for text
             $sql = rex_sql::factory();
             $where = ['domain' => $domain, 'type' => $type];
@@ -87,6 +93,12 @@ class eRecht24
                 throw new rex_exception('Invalid text type: ' . $type);
             }
 
+            // Validate language parameter to prevent SQL injection
+            if (!in_array($lang, ['de', 'en'])) {
+                rex_logger::logError(1, 'Invalid language parameter: ' . $lang, __FILE__, __LINE__);
+                return null;
+            }
+
             // Get domain
             $domain = self::getDomain($identifier);
 
@@ -94,7 +106,7 @@ class eRecht24
                 return null;
             }
 
-            // Get text
+            // Get text with safe column name
             $html = rex_sql::factory()
                 ->setQuery(
                     'SELECT html_' . $lang . ' FROM ' . rex::getTable('erecht24_texts') . ' WHERE domain = :domain AND type = :type',

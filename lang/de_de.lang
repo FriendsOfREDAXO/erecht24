@@ -62,3 +62,40 @@ erecht24_outputfilter_type = TYPE: PRIVACY, IMPRINT oder PRIVACY-SOCIAL
 erecht24_outputfilter_identifier = IDENTIFIER: ID (Zahl) oder Domain
 erecht24_outputfilter_lang = LANG: de oder en
 erecht24_outputfilter_note = Hinweis: Im Edit-Modus des Structure Content Plugins werden die Platzhalter nicht ersetzt.
+
+# Advanced Functions
+erecht24_advanced = Erweiterte Funktionen
+erecht24_advanced_functions = Erweiterte Funktionen
+erecht24_manual_sync = Manuelle Synchronisation
+erecht24_manual_sync_description = Synchronisiere alle Texte manuell mit der eRecht24 API. Dies erfolgt normalerweise automatisch über die Push-API.
+erecht24_sync_now = Jetzt synchronisieren
+erecht24_sync_success = Texte erfolgreich synchronisiert
+erecht24_test_push = Test-Push senden
+erecht24_testpush_success = Test-Push erfolgreich gesendet
+erecht24_testpush_failed = Test-Push fehlgeschlagen
+erecht24_api_messages = API-Nachrichten
+erecht24_api_messages_description = Aktuelle Nachrichten vom eRecht24-Server (Wartungshinweise, Updates, Störungen)
+erecht24_server_messages = Server-Nachrichten
+
+# Webhook Log
+erecht24_webhook_log = Webhook-Log
+erecht24_webhook_log_filter = Filter
+erecht24_webhook_statistics = Statistiken
+erecht24_filter_domain = Domain
+erecht24_filter_status = Status
+erecht24_all = Alle
+erecht24_success = Erfolg
+erecht24_error = Fehler
+erecht24_filter = Filtern
+erecht24_reset = Zurücksetzen
+erecht24_total = Gesamt
+erecht24_avg_response_time = Durchschn. Antwortzeit
+erecht24_min_response_time = Min. Antwortzeit
+erecht24_max_response_time = Max. Antwortzeit
+erecht24_timestamp = Zeitstempel
+erecht24_type = Typ
+erecht24_status = Status
+erecht24_response_time = Antwortzeit
+erecht24_error_message = Fehlermeldung
+erecht24_no_logs = Keine Log-Einträge gefunden
+erecht24_last_100 = Letzte 100 Einträge

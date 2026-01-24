@@ -45,10 +45,16 @@ class OutputFilter
             return $content;
         }
 
+        // Performance: Prüfe ob Platzhalter vorhanden sind bevor Regex läuft
+        if (false === strpos($content, '##ER-')) {
+            return $content;
+        }
+
         // Suche nach allen eRecht24 Platzhaltern
         // Format: ##ER-{TYPE}:{DOMAIN}:{LANG}##
         // Beispiele: ##ER-PRIVACY:example.com:de##, ##ER-IMPRINT:example.com:en##
-        $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([^:]+):([a-z]{2})##/i';
+        // Restrict domain pattern to valid characters
+        $pattern = '/##ER-(PRIVACY|IMPRINT|PRIVACY-SOCIAL):([a-z0-9.-]+):([a-z]{2})##/i';
 
         return preg_replace_callback($pattern, [self::class, 'replacePlaceholder'], $content);
     }
@@ -61,8 +67,13 @@ class OutputFilter
     private static function replacePlaceholder(array $matches): string
     {
         $typeShort = strtoupper($matches[1]);
-        $domain = $matches[2];
+        $domain = strtolower(trim($matches[2]));
         $lang = strtolower($matches[3]);
+
+        // Additional validation
+        if (!in_array($lang, ['de', 'en'])) {
+            return $matches[0];
+        }
 
         // Konvertiere Kurzform zu vollständigem Typ
         $type = self::convertType($typeShort);
@@ -72,17 +83,27 @@ class OutputFilter
             return $matches[0];
         }
 
+        // Cache key für Performance
+        static $cache = [];
+        $cacheKey = $domain . '_' . $type . '_' . $lang;
+
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
+
         // Hole den Text aus der Datenbank
         $text = eRecht24::getText($domain, $type, $lang);
 
         // Wenn kein Text gefunden wurde, gib einen Kommentar zurück (im Debug-Modus)
         if (null === $text || '' === $text) {
-            if (rex::isDebugMode()) {
-                return '<!-- eRecht24: Kein Text gefunden für ' . htmlspecialchars($matches[0]) . ' -->';
-            }
-            return '';
+            $result = rex::isDebugMode() 
+                ? '<!-- eRecht24: Kein Text gefunden für ' . htmlspecialchars($matches[0], ENT_QUOTES, 'UTF-8') . ' -->' 
+                : '';
+            $cache[$cacheKey] = $result;
+            return $result;
         }
 
+        $cache[$cacheKey] = $text;
         return $text;
     }
 

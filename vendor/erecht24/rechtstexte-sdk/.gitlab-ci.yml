@@ -1,0 +1,53 @@
+# cache vendor folder between builds
+cache:
+  paths:
+    - vendor/
+
+stages:
+  - test
+
+.phpunit:
+  image: php:latest
+  script:
+    - apt-get update -yqq
+    - apt-get install git zip -yqq
+    # Install composer
+    - curl -sS https://getcomposer.org/installer | php
+    # Install all project dependencies
+    - php composer.phar install
+    - vendor/bin/phpunit --testdox tests --log-junit report.xml
+  artifacts:
+    when: always
+    expire_in: 30 days
+    reports:
+      junit: report.xml
+
+php 7.4:
+  extends: .phpunit
+  image: php:7.4
+  variables:
+    ERECHT24_API_KEY: $ERECHT24_API_KEY_PHP74
+
+php 8.0:
+  extends: .phpunit
+  image: php:8.0
+  variables:
+    ERECHT24_API_KEY: $ERECHT24_API_KEY_PHP80
+
+php 8.1:
+  extends: .phpunit
+  image: php:8.1
+  variables:
+    ERECHT24_API_KEY: $ERECHT24_API_KEY_PHP81
+
+php 8.2:
+  extends: .phpunit
+  image: php:8.2
+
+php 8.3:
+  extends: .phpunit
+  image: php:8.3
+
+php 8.4:
+  extends: .phpunit
+  image: php:8.4

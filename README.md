@@ -1,40 +1,70 @@
 # REDAXO eRecht24 Rechtstexte
 
-Dieses Addon ermöglicht die einfache Integration von Rechtstexten (Impressum, Datenschutzerklärung) aus dem eRecht24 Projekt Manager in REDAXO.
+Dieses Addon ermöglicht die sichere und einfache Integration von Rechtstexten (Impressum, Datenschutzerklärung) aus dem eRecht24 Projekt Manager in REDAXO.
 
-☝️ Dieses Addon wurde nicht von eRecht24 entwickelt und wird auch nicht von eRecht24 supportet. 
+## 📋 Inhaltsverzeichnis
 
-Für Fragen und Hilfe zum AddOn bitte in [Slack](https://redaxo.org/support/slack/) melden.
-Bei Fehlern und technischen Problemen bitte Issue bei GitHub anlegen. 
+- [Über eRecht24](#über-erecht24)
+- [Features](#features)
+- [Installation](#installation)
+- [Einrichtung](#einrichtung)
+- [Verwendung](#verwendung)
+  - [PHP-API](#text-typen-prüfen-und-ausgeben)
+  - [Outputfilter](#outputfilter)
+- [Sicherheit](#sicherheit)
+- [Performance](#performance)
+- [Mehrere Domains](#mehrere-domains)
+- [Support](#support)
+
+## ⚠️ Hinweis
+
+Dieses Addon wurde nicht von eRecht24 entwickelt und wird auch nicht von eRecht24 supportet. 
+
+**Support:**
+- Fragen und Hilfe zum AddOn: [REDAXO Slack](https://redaxo.org/support/slack/)
+- Fehler und technische Probleme: [GitHub Issues](https://github.com/FriendsOfREDAXO/erecht24/issues) 
 
 ## Über eRecht24 
 eRecht24 ist ein deutscher Anbieter bekannt für sein Angebot für rechtssichere Texte, insbesondere für Impressum und Datenschutzerklärungen, die speziell für Webseitenbetreiber, Online-Shops und Unternehmen erstellt werden. Die Plattform bietet einen Projekt-Manager, mit dem Nutzer individuelle Rechtstexte generieren und automatisch aktualisieren lassen können. Weitere Dienste und Tutorials komplettieren das Angebot auch abseits des Webs. 
 
 Mehr Informationen unter: [https://www.e-recht24.de](https://www.e-recht24.de)
 
-## Features
-- Aktualisierung der Texte via Push API von eRecht24 (Sync-Button)
-- Unterstützung mehrerer Domains
-- Registrierung über API-Key bei eRecht24
-- Löschen und Deregistrierung der Domain inkl. Löschen der Texte lokal. 
-- Mehrsprachige Texte (DE/EN)
-- Einfache Integration via PHP-Methoden
-- Nutzung der eRecht24 SDK
-- Objektorientiertes Design mit Namespace-Support
+## ✨ Features
+
+- ✅ **Push-API Integration**: Automatische Aktualisierung via eRecht24 Push API
+- ✅ **Multi-Domain Support**: Verwaltung mehrerer Domains mit eigenen Rechtstexten
+- ✅ **Mehrsprachigkeit**: Unterstützung für DE/EN Rechtstexte
+- ✅ **Flexible Integration**: PHP-API und automatische Outputfilter-Platzhalter
+- ✅ **Sicherheit**: CSRF-Schutz, Input-Validierung, Secret-basierte API-Authentifizierung
+- ✅ **Performance**: Caching, optimierte Datenbankabfragen, Early-Exit-Patterns
+- ✅ **Einfache Verwaltung**: Backend-Oberfläche für Domain-Registrierung und Vorschau
+- ✅ **SDK-basiert**: Nutzung der offiziellen eRecht24 SDK
+- ✅ **Modern**: PHP 8.2+, Strict Types, objektorientiertes Design mit Namespaces
 
 
-## Installation
-1. Im REDAXO Installer das Addon "erecht24" herunterladen.
-2. Addon installieren und aktivieren.
+## 📦 Installation
 
-## Einrichtung
-1. Im [eRecht24 Projekt Manager](https://www.e-recht24.de/mitglieder/tools/projekt-manager/) ein neues Projekt anlegen.
-2. Texte für Impressum und Datenschutzerklärung über eRecht24 erstellen.
-3. API-Schlüssel über das Zahnradsymbol des Projekts generieren.
-4. In REDAXO unter eRecht24 Rechtstexte > Einstellungen:
-   - Domain eintragen
-   - API-Schlüssel einfügen
-   - Speichern
+### Systemanforderungen
+- REDAXO >= 5.18
+- PHP >= 8.2
+- PHP-Extensions: `curl`, `json`
+
+### Installationsschritte
+1. Im REDAXO Installer das Addon **"erecht24"** herunterladen
+2. Addon **installieren** und **aktivieren**
+
+## ⚙️ Einrichtung
+
+### eRecht24 Projekt erstellen
+1. Im [eRecht24 Projekt Manager](https://www.e-recht24.de/mitglieder/tools/projekt-manager/) neues Projekt anlegen
+2. Rechtstexte für Impressum und Datenschutzerklärung erstellen
+3. **API-Schlüssel** über das Zahnradsymbol des Projekts generieren
+
+### REDAXO Konfiguration
+1. Im Backend zu **eRecht24 > Einstellungen** navigieren
+2. **Domain** eintragen (z.B. `example.com`)
+3. **API-Schlüssel** einfügen
+4. Speichern und auf **"Test"** klicken, um die Verbindung zu prüfen
 
 ## Verwendung
 
@@ -182,7 +212,7 @@ try {
     eRecht24Client::register('example.com', 'your-api-key');
     echo 'Domain erfolgreich registriert';
 } catch (rex_exception $e) {
-    echo 'Fehler bei der Registrierung: ' . $e->getMessage();
+    echo 'Fehler bei der Registrierung: ' . rex_escape($e->getMessage());
 }
 
 // Domain entfernen
@@ -190,8 +220,57 @@ try {
     eRecht24Client::unregister('example.com');
     echo 'Domain erfolgreich entfernt';
 } catch (rex_exception $e) {
-    echo 'Fehler beim Entfernen: ' . $e->getMessage();
+    echo 'Fehler beim Entfernen: ' . rex_escape($e->getMessage());
 }
+```
+
+## 🔒 Sicherheit
+
+Das Addon implementiert mehrere Sicherheitsebenen:
+
+### CSRF-Schutz
+- Alle Backend-Formulare sind durch CSRF-Tokens geschützt
+- DELETE-Operationen erfordern Token-Validierung
+
+### Input-Validierung
+- **Domain-Validierung**: Nur gültige Domain-Formate werden akzeptiert
+- **API-Key-Validierung**: Mindestlänge und Format-Prüfung
+- **Sprach-Parameter**: Whitelist-Validierung (nur `de` und `en`)
+- **Text-Typen**: Validierung gegen definierte Typen-Liste
+
+### API-Sicherheit
+- **Secret-basierte Authentifizierung**: Push-API verwendet eindeutige Secrets
+- **Format-Validierung**: Alphanumerische Secrets, validierte Type-Parameter
+- **Keine CSRF-Protection**: API-Endpoint ist für externe Webhooks konzipiert
+
+### Ausgabe-Sicherheit
+- `rex_escape()` für alle Benutzereingaben im Backend
+- `htmlspecialchars()` mit `ENT_QUOTES` für Debug-Ausgaben
+- Prepared Statements für alle Datenbankabfragen
+
+### Logging
+- Fehler werden via `rex_logger` protokolliert
+- Sensitive Daten (API-Keys, Secrets) werden nicht geloggt
+- Debug-Modus kann aktiviert werden (nur für Entwicklung)
+
+## ⚡ Performance
+
+### Optimierungen
+- **Outputfilter Early-Exit**: Prüfung auf `##ER-` vor Regex-Ausführung
+- **Static Caching**: Platzhalter-Ersetzungen werden pro Request gecached
+- **Optimierte Regex**: Eingeschränkte Domain-Pattern für schnellere Matches
+- **Indizierte Datenbank**: Unique-Index auf `domain` und `domain+type`
+- **Lazy Loading**: Texte werden nur bei Bedarf geladen
+
+### Best Practices
+```php
+// Performance: Prüfen vor Abruf
+if (eRecht24::hasText($domain, 'imprint')) {
+    echo eRecht24::getText($domain, 'imprint');
+}
+
+// Outputfilter: Nur aktivieren wenn benötigt
+// Backend: eRecht24 > Einstellungen > Outputfilter
 ```
 
 ## Klassen-Referenz
@@ -230,29 +309,97 @@ class eRecht24Client
 }
 ```
 
-## Texte aktualisieren
-Die Texte werden via Push-API von eRecht24 aktualisiert, sobald sie im eRecht24 Projekt Manager geändert werden und Sync gedrückt wurde.
+## 🔄 Texte aktualisieren
 
-## Mehrere Domains
-Das Addon unterstützt mehrere Domains. Jede Domain benötigt:
-1. Ein eigenes Projekt im eRecht24 Projekt Manager
-2. Einen eigenen API-Schlüssel
+Die Texte werden automatisch via **Push-API** von eRecht24 aktualisiert:
 
-## Rechtliche Hinweise
-Die API und das SDK von eRecht24 unterliegen den API-Nutzungsbedingungen von eRecht24 GmbH & Co. KG. Weitere Informationen zur API-Nutzung finden sich im Vendor-Ordner.
-REDAXO-Code-Bestandteile fallen unter MIT-Lizenz. API-spezifischer Code fällt unter der eRecht24 Lizenz.
+1. Texte im eRecht24 Projekt Manager ändern
+2. Auf **"Sync"** klicken
+3. eRecht24 sendet die Änderungen automatisch an REDAXO
+4. Texte sind sofort verfügbar
 
-## Autor
-**Friends Of REDAXO**
-* http://www.redaxo.org
-* https://github.com/FriendsOfREDAXO
+**Manuelle Synchronisation:**
+- Im Backend unter **eRecht24 > Einstellungen**
+- Auf **"Test"** bei der gewünschten Domain klicken
+
+## 🌐 Mehrere Domains
+
+Das Addon unterstützt die Verwaltung mehrerer Domains:
+
+### Anforderungen pro Domain
+1. Eigenes Projekt im eRecht24 Projekt Manager
+2. Eigener API-Schlüssel
+3. Individuelle Rechtstexte
+
+### Konfiguration
+- Jede Domain wird separat im Backend registriert
+- Domains werden über ihre URL identifiziert
+- Verschiedene Domains können unterschiedliche Texte haben
+
+```php
+// Domain-spezifischer Abruf
+echo eRecht24::getText('domain1.com', 'imprint');
+echo eRecht24::getText('domain2.com', 'imprint');
+
+// Platzhalter pro Domain
+##ER-PRIVACY:domain1.com:de##
+##ER-PRIVACY:domain2.com:de##
+```
+
+## 🐛 Debugging
+
+### Debug-Modus aktivieren
+```php
+// In lib/eRecht24Client.php
+public const DEBUG = true;
+```
+
+### Was wird geloggt?
+- Push-API Requests und Responses
+- Datenbank-Operationen
+- API-Fehler von eRecht24
+- Platzhalter-Ersetzungen (wenn nicht gefunden)
+
+### Log-Dateien
+Logs finden sich im REDAXO System-Log unter **System > Logdateien**.
+
+## 📝 Changelog
+
+### Version 1.1.0
+- ✅ Sicherheitsverbesserungen: Input-Validierung, CSRF-Schutz für DELETE
+- ✅ Performance-Optimierungen: Caching, Early-Exit-Patterns
+- ✅ Domain-Validierung mit Regex
+- ✅ Verbesserte Fehlerbehandlung und Logging
+- ✅ Erweiterte README-Dokumentation
+
+## ⚖️ Rechtliche Hinweise
+
+Die API und das SDK von eRecht24 unterliegen den **API-Nutzungsbedingungen** von eRecht24 GmbH & Co. KG. 
+
+**Lizenzen:**
+- REDAXO-Code: MIT-Lizenz
+- eRecht24 SDK: eRecht24 Lizenz (siehe `vendor/`)
+
+Weitere Informationen zur API-Nutzung finden sich im Vendor-Ordner.
+
+## 👥 Credits
+
+**Entwicklung**
+- [Friends Of REDAXO](https://github.com/FriendsOfREDAXO)
 
 **Projektleitung**
-[Thomas Skerbis](https://github.com/skerbis)
+- [Thomas Skerbis](https://github.com/skerbis)
 
 **Sponsors**
 - [KLXM Crossmedia GmbH](https://klxm.de)
 - [Marco Hanke](https://github.com/marcohanke)
 
-**Dank an:**
-[https://www.e-recht24.de](https://www.e-recht24.de)
+**Danke an**
+- [eRecht24](https://www.e-recht24.de) für die API und SDK
+
+## 🔗 Links
+
+- [REDAXO Website](https://redaxo.org)
+- [GitHub Repository](https://github.com/FriendsOfREDAXO/erecht24)
+- [REDAXO Slack](https://redaxo.org/support/slack/)
+- [eRecht24 Website](https://www.e-recht24.de)

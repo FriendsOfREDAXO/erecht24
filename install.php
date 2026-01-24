@@ -24,3 +24,15 @@ rex_sql_table::get(rex::getTable('erecht24_texts'))
     ->ensureColumn(new rex_sql_column('updatedate', 'datetime'))
     ->ensureColumn(new rex_sql_column('createdate', 'datetime'))
     ->ensure();
+
+// Install database table for webhook logs
+rex_sql_table::get(rex::getTable('erecht24_webhook_log'))
+    ->ensurePrimaryIdColumn()
+    ->ensureColumn(new rex_sql_column('domain', 'varchar(191)'))
+    ->ensureColumn(new rex_sql_column('type', 'varchar(32)'))
+    ->ensureColumn(new rex_sql_column('status', 'varchar(20)'))  // success, error
+    ->ensureColumn(new rex_sql_column('response_time', 'int'))  // in milliseconds
+    ->ensureColumn(new rex_sql_column('error_message', 'text'))
+    ->ensureColumn(new rex_sql_column('createdate', 'datetime'))
+    ->ensureIndex(new rex_sql_index('domain_createdate', ['domain', 'createdate']))
+    ->ensure();

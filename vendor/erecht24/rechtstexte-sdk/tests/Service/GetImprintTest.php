@@ -31,7 +31,9 @@ final class GetImprintTest extends TestCase
         $bodyData = $response->getBodyDataAsArray();
         $this->assertArrayHasKey('message', $bodyData);
         $this->assertArrayHasKey('message_de', $bodyData);
-        $this->assertArrayHasKey('token', $bodyData);
+        $this->assertArrayHasKey('faq_link', $bodyData);
+        $this->assertEquals(1649936693, $bodyData['error_code']);
+        $this->assertArrayHasKey('debug', $bodyData);
     }
 
     public function testShouldHandleValidApiKey(): void

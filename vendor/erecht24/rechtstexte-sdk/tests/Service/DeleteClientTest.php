@@ -34,7 +34,9 @@ final class DeleteClientTest extends TestCase
         $bodyData = $response->getBodyDataAsArray();
         $this->assertArrayHasKey('message', $bodyData);
         $this->assertArrayHasKey('message_de', $bodyData);
-        $this->assertArrayHasKey('token', $bodyData);
+        $this->assertArrayHasKey('faq_link', $bodyData);
+        $this->assertEquals(1649936693, $bodyData['error_code']);
+        $this->assertArrayHasKey('debug', $bodyData);
     }
 
     public function testShouldRejectWrongClientId(): void
@@ -46,7 +48,7 @@ final class DeleteClientTest extends TestCase
         $response = $service->getResponse();
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(false, $response->isSuccess());
-        $this->assertSame(400, $response->getCode());
+        $this->assertSame(404, $response->getCode());
 
         $bodyData = $response->getBodyDataAsArray();
         $this->assertArrayHasKey('message', $bodyData);

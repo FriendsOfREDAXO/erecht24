@@ -119,7 +119,7 @@ See full documentation of the [API handler](./docs/api_handler.md) for other ser
 Please check out our [Terms of use](LICENSE).
 
 ## Services
-The eRecht24 Rechtstexte-API documentation can be found [here](https://docs.api.e-recht24.de/).
+The eRecht24 Rechtstexte-API documentation can be found [here](https://api-docs.e-recht24.de/).
 
 
 

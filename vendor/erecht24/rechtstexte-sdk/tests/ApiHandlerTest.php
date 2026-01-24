@@ -24,8 +24,8 @@ final class ApiHandlerTest extends TestCase
         $client->getClientList();
 
         // getting client list without login should fail with 401 status code
-        $this->assertEquals($client->getLastErrorCode(), 401);
-        $this->assertEquals($client->getLastErrorMessage(), "Invalid key for the eRecht24 API.");
-        $this->assertEquals($client->getLastErrorMessage(Lang::DE_DE), "Ungültiger Schlüssel für die eRecht24 API.");
+        $this->assertEquals(401, $client->getLastErrorCode());
+        $this->assertEquals("Invalid API key for the eRecht24 legal texts API.", $client->getLastErrorMessage());
+        $this->assertEquals('Ungültiger API-Schlüssel für die eRecht24 Rechtstexte API.', $client->getLastErrorMessage(Lang::DE_DE));
     }
 }

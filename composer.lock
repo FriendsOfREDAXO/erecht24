@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "erecht24/rechtstexte-sdk",
-            "version": "1.0.7",
+            "version": "1.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eRecht24/rechtstexte-sdk.git",
-                "reference": "8d3de7e73c83a3287b1113ab6b7d4abfaf277900"
+                "reference": "9796cd7f47bf240e663a8df6dadb84925761f988"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eRecht24/rechtstexte-sdk/zipball/8d3de7e73c83a3287b1113ab6b7d4abfaf277900",
-                "reference": "8d3de7e73c83a3287b1113ab6b7d4abfaf277900",
+                "url": "https://api.github.com/repos/eRecht24/rechtstexte-sdk/zipball/9796cd7f47bf240e663a8df6dadb84925761f988",
+                "reference": "9796cd7f47bf240e663a8df6dadb84925761f988",
                 "shasum": ""
             },
             "require": {
@@ -48,9 +48,9 @@
             "description": "API client library for eRecht24 Rechtstexte-API",
             "support": {
                 "issues": "https://github.com/eRecht24/rechtstexte-sdk/issues",
-                "source": "https://github.com/eRecht24/rechtstexte-sdk/tree/1.0.7"
+                "source": "https://github.com/eRecht24/rechtstexte-sdk/tree/1.0.8"
             },
-            "time": "2022-03-02T18:22:26+00:00"
+            "time": "2025-04-22T12:51:20+00:00"
         }
     ],
     "packages-dev": [],
